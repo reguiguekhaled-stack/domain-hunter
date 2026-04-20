@@ -7,7 +7,11 @@ class DomainScraper:
     def __init__(self):
         """Web Scraper للدومينات المنتهية"""
         self.headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537. (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        self.headers = {
+            'User-Agent': 'Mozilla/5.0',
+            'Accept': 'application/json'
+
         }
     
     def scrape_namejet_pending(self):
@@ -157,7 +161,7 @@ class DomainScraper:
         print("📥 جاري جلب الدومينات من API...")
         print("🔥 API FUNCTION IS RUNNING") 
 
-        url = "https://api.domainsdb.info/v1/domains/search?domain=ai"
+       url = "https://api.domainsdb.info/v1/domains/search?domain=shop"
 
         try:
            response = requests.get(url, headers=self.headers, timeout=10)
