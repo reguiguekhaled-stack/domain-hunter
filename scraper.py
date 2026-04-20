@@ -155,16 +155,19 @@ class DomainScraper:
 
     def scrape_api_domains(self):
         print("📥 جاري جلب الدومينات من API...")
+        print("🔥 API FUNCTION IS RUNNING") 
 
         url = "https://api.domainsdb.info/v1/domains/search?domain=ai"
 
         try:
            response = requests.get(url, headers=self.headers, timeout=10)
+           print("STATUS:", response.status_code)
 
            if response.status_code != 200:
                print("❌ فشل API")
                return []
 
+           data = response.json()
            data = response.json()
 
            domains = []
@@ -175,7 +178,7 @@ class DomainScraper:
 
            print(f"✅ تم جلب {len(domains)} دومين من API")
            return domains
-
+           print("DOMAINS FROM API:", len(domains))
         except Exception as e:
             print(f"❌ خطأ: {e}")
             return []
