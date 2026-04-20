@@ -1,9 +1,9 @@
-import requests
-from bs4 import BeautifulSoup
-import time
-from datetime import datetime
+    import requests
+    from bs4 import BeautifulSoup
+    import time
+    from datetime import datetime
 
-class DomainScraper:
+    class DomainScraper:
     def __init__(self):
         """Web Scraper للدومينات المنتهية"""
         self.headers = {
@@ -15,7 +15,7 @@ class DomainScraper:
             'Accept': 'application/json'
 
         }
-    
+
     def scrape_namejet_pending(self):
         """
         يسحب دومينات من NameJet Pending Delete
@@ -65,7 +65,7 @@ class DomainScraper:
         except Exception as e:
             print(f"❌ خطأ في الاتصال: {str(e)}")
             return self._get_fallback_domains()
-    
+
     def scrape_expireddomains_rss(self):
         """
         يسحب من ExpiredDomains.net RSS Feed (محدود بس مجاني)
@@ -111,7 +111,7 @@ class DomainScraper:
         except Exception as e:
             print(f"❌ خطأ: {str(e)}")
             return []
-    
+
     def _get_fallback_domains(self):
         """
         دومينات احتياطية (في حالة فشل Scraping)
@@ -135,13 +135,13 @@ class DomainScraper:
             'primedeliver.app',
             'tradeflow.com',
         ]
-    
+
     def clean_domain(self, domain):
         """ينظف اسم الدومين"""
         domain = domain.strip().lower()
         domain = ''.join(c for c in domain if c.isalnum() or c in '.-')
         return domain
-    
+
     def validate_domain(self, domain):
         """يتحقق من صحة الدومين"""
         if '.' not in domain:
@@ -163,28 +163,28 @@ class DomainScraper:
         print("📥 جاري جلب الدومينات من API...")
         print("🔥 API FUNCTION IS RUNNING") 
 
-       url = "https://api.domainsdb.info/v1/domains/search?domain=shop"
+        url = "https://api.domainsdb.info/v1/domains/search?domain=shop"
 
         try:
-           response = requests.get(url, headers=self.headers, timeout=10)
-           print("STATUS:", response.status_code)
+            response = requests.get(url, headers=self.headers, timeout=10)
+            print("STATUS:", response.status_code)
 
-           if response.status_code != 200:
-               print("❌ فشل API")
-               return []
+            if response.status_code != 200:
+                print("❌ فشل API")
+                return []
 
-           data = response.json()
-           data = response.json()
+            data = response.json()
+            data = response.json()
 
-           domains = []
-           for item in data.get("domains", []):
-               domain = item.get("domain")
-               if domain:
-                   domains.append(domain)
+            domains = []
+            for item in data.get("domains", []):
+                domain = item.get("domain")
+                if domain:
+                    domains.append(domain)
 
-           print(f"✅ تم جلب {len(domains)} دومين من API")
-           return domains
-           print("DOMAINS FROM API:", len(domains))
+            print(f"✅ تم جلب {len(domains)} دومين من API")
+            return domains
+            print("DOMAINS FROM API:", len(domains))
         except Exception as e:
             print(f"❌ خطأ: {e}")
             return []
