@@ -6,7 +6,7 @@ class DomainScraper:
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         }
     
-    def import requests
+     import requests
 
 def scrape_real_domains(self):
     print("📥 جاري جلب الدومينات من API حقيقي...")
