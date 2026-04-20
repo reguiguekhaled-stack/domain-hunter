@@ -6,29 +6,27 @@ class DomainScraper:
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         }
     
-    def scrape_expireddomains_sample(self):
-        print("📥 جاري الاتصال بـ ExpiredDomains.net...")
+    def import requests
+
+def scrape_real_domains(self):
+    print("📥 جاري جلب الدومينات من API حقيقي...")
+
+    url = "https://api.domainsdb.info/v1/domains/search?domain=com"
+    
+    try:
+        response = requests.get(url, timeout=10)
+        data = response.json()
         
-        sample_domains = [
-            'techvault.com',
-            'smartlogistics.net',
-            'innovatehub.io',
-            'tradingflow.com',
-            'databridge.app',
-            'securepayment.co',
-            'rapidshipping.com',
-            'cloudsync.ai',
-            'marketpulse.io',
-            'digitalforge.co',
-            'streamconnect.com',
-            'vaultsecure.net',
-            'quickroute.io',
-            'primedeliver.app',
-            'tradeflow.com',
-        ]
+        domains = []
+        for item in data.get("domains", []):
+            domains.append(item["domain"])
         
-        print(f"✅ تم الحصول على {len(sample_domains)} دومين")
-        return sample_domains
+        print(f"✅ تم جلب {len(domains)} دومين")
+        return domains
+    
+    except Exception as e:
+        print(f"❌ خطأ أثناء الجلب: {e}")
+        return []
     
     def clean_domain(self, domain):
         domain = domain.strip().lower()
@@ -54,7 +52,7 @@ class DomainScraper:
     def scrape_with_retry(self, max_retries=3):
         for attempt in range(max_retries):
             try:
-                domains = self.scrape_expireddomains_sample()
+                domains = self.scrape_real_domains()
                 return domains
             except Exception as e:
                 print(f"❌ محاولة {attempt + 1} فشلت: {str(e)}")
