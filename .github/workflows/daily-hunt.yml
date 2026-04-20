@@ -2,7 +2,7 @@ name: Daily Domain Hunt
 
 on:
   schedule:
-   cron: '30 20 * * *'
+    - cron: '45 20  * * *'
   workflow_dispatch:
 
 jobs:
@@ -11,7 +11,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v3
     
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -35,7 +35,7 @@ jobs:
       run: python hunter.py
     
     - name: Upload reports
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v3
       if: always()
       with:
         name: reports
