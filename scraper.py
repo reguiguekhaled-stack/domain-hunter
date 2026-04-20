@@ -1,15 +1,118 @@
+import requests
+from bs4 import BeautifulSoup
 import time
+from datetime import datetime
 
 class DomainScraper:
     def __init__(self):
+        """Web Scraper للدومينات المنتهية"""
         self.headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
     
-    def scrape_expireddomains_sample(self):
-        print("📥 جاري الاتصال بـ ExpiredDomains.net...")
+    def scrape_namejet_pending(self):
+        """
+        يسحب دومينات من NameJet Pending Delete
+        (مجاني، بدون تسجيل)
+        """
+        print("📥 جاري الاتصال بـ NameJet...")
         
-        sample_domains = [
+        url = "https://www.namejet.com/Pages/Auctions/PendingDelete.aspx"
+        
+        try:
+            response = requests.get(url, headers=self.headers, timeout=15)
+            
+            if response.status_code != 200:
+                print(f"❌ فشل الاتصال: {response.status_code}")
+                return self._get_fallback_domains()
+            
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            # ابحث عن جدول الدومينات
+            domains = []
+            
+            # NameJet يستخدم جدول HTML
+            rows = soup.find_all('tr')
+            
+            for row in rows[:100]:  # أول 100 صف
+                cells = row.find_all('td')
+                
+                if len(cells) >= 1:
+                    # استخرج اسم الدومين
+                    domain_cell = cells[0].get_text(strip=True)
+                    
+                    # نظف الدومين
+                    if '.' in domain_cell:
+                        domain = domain_cell.lower().strip()
+                        
+                        # فلتر: .com فقط
+                        if domain.endswith('.com'):
+                            domains.append(domain)
+            
+            if len(domains) > 0:
+                print(f"✅ تم الحصول على {len(domains)} دومين من NameJet")
+                return domains[:50]  # أول 50 دومين
+            else:
+                print("⚠️ لم يتم العثور على دومينات، استخدام البيانات الاحتياطية")
+                return self._get_fallback_domains()
+        
+        except Exception as e:
+            print(f"❌ خطأ في الاتصال: {str(e)}")
+            return self._get_fallback_domains()
+    
+    def scrape_expireddomains_rss(self):
+        """
+        يسحب من ExpiredDomains.net RSS Feed (محدود بس مجاني)
+        """
+        print("📥 جاري الاتصال بـ ExpiredDomains RSS...")
+        
+        url = "https://www.expireddomains.net/domain-name-search/?fwhois=22&flimit=500"
+        
+        try:
+            response = requests.get(url, headers=self.headers, timeout=15)
+            
+            if response.status_code != 200:
+                return []
+            
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            domains = []
+            
+            # ExpiredDomains يستخدم جدول
+            table = soup.find('table', {'class': 'base1'})
+            
+            if table:
+                rows = table.find_all('tr')[1:]  # تخطى الـ header
+                
+                for row in rows[:100]:
+                    cols = row.find_all('td')
+                    
+                    if len(cols) >= 1:
+                        domain_link = cols[0].find('a')
+                        
+                        if domain_link:
+                            domain = domain_link.get_text(strip=True).lower()
+                            
+                            if '.' in domain and domain.endswith('.com'):
+                                domains.append(domain)
+            
+            if len(domains) > 0:
+                print(f"✅ تم الحصول على {len(domains)} دومين من ExpiredDomains")
+                return domains[:50]
+            
+            return []
+        
+        except Exception as e:
+            print(f"❌ خطأ: {str(e)}")
+            return []
+    
+    def _get_fallback_domains(self):
+        """
+        دومينات احتياطية (في حالة فشل Scraping)
+        """
+        print("⚠️ استخدام دومينات احتياطية...")
+        
+        return [
             'techvault.com',
             'smartlogistics.net',
             'innovatehub.io',
@@ -26,16 +129,15 @@ class DomainScraper:
             'primedeliver.app',
             'tradeflow.com',
         ]
-        
-        print(f"✅ تم الحصول على {len(sample_domains)} دومين")
-        return sample_domains
     
     def clean_domain(self, domain):
+        """ينظف اسم الدومين"""
         domain = domain.strip().lower()
         domain = ''.join(c for c in domain if c.isalnum() or c in '.-')
         return domain
     
     def validate_domain(self, domain):
+        """يتحقق من صحة الدومين"""
         if '.' not in domain:
             return False
         
@@ -51,35 +153,37 @@ class DomainScraper:
         
         return True
     
-    def scrape_with_retry(self, max_retries=3):
-        for attempt in range(max_retries):
-            try:
-                domains = self.scrape_expireddomains_sample()
-                return domains
-            except Exception as e:
-                print(f"❌ محاولة {attempt + 1} فشلت: {str(e)}")
-                if attempt < max_retries - 1:
-                    wait_time = 5 * (attempt + 1)
-                    print(f"⏳ انتظار {wait_time} ثواني...")
-                    time.sleep(wait_time)
-        
-        return []
-    
     def get_domains(self):
+        """الدالة الرئيسية لاستخراج الدومينات"""
         print("=" * 70)
         print("🕷️  DOMAIN SCRAPER")
         print("=" * 70)
         
-        raw_domains = self.scrape_with_retry()
+        # جرب المصادر بالترتيب
+        raw_domains = []
         
+        # المصدر 1: NameJet
+        namejet_domains = self.scrape_namejet_pending()
+        raw_domains.extend(namejet_domains)
+        
+        # المصدر 2: ExpiredDomains (إذا NameJet ما كفى)
+        if len(raw_domains) < 20:
+            expired_domains = self.scrape_expireddomains_rss()
+            raw_domains.extend(expired_domains)
+        
+        # نظّف وتحقق
         clean_domains = []
+        seen = set()
+        
         for domain in raw_domains:
             cleaned = self.clean_domain(domain)
-            if self.validate_domain(cleaned):
+            
+            if cleaned not in seen and self.validate_domain(cleaned):
                 clean_domains.append(cleaned)
+                seen.add(cleaned)
         
         print(f"\n✅ تم تنظيف الدومينات:")
         print(f"   الأصلي: {len(raw_domains)}")
         print(f"   النظيف: {len(clean_domains)}")
         
-        return clean_domains
+        return clean_domains[:50]  # أول 50 دومين
