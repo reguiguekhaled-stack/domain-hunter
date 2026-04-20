@@ -90,4 +90,8 @@ class DomainScraper:
         print(f"   الخام: {len(raw_domains)}")
         print(f"   بعد التنظيف: {len(clean_domains)}")
 
+<<<<<<< HEAD
         return clean_domains
+=======
+        return clean_domains
+>>>>>>> e467675 (upgrade scraper to real API)
