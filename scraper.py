@@ -152,38 +152,67 @@ class DomainScraper:
             return False
         
         return True
-    
+
+    def scrape_api_domains(self):
+        print("📥 جاري جلب الدومينات من API...")
+
+        url = "https://api.domainsdb.info/v1/domains/search?domain=ai"
+
+        try:
+           response = requests.get(url, headers=self.headers, timeout=10)
+
+           if response.status_code != 200:
+               print("❌ فشل API")
+               return []
+
+           data = response.json()
+
+           domains = []
+           for item in data.get("domains", []):
+               domain = item.get("domain")
+               if domain:
+                   domains.append(domain)
+
+           print(f"✅ تم جلب {len(domains)} دومين من API")
+           return domains
+
+        except Exception as e:
+            print(f"❌ خطأ: {e}")
+            return []
+
     def get_domains(self):
-        """الدالة الرئيسية لاستخراج الدومينات"""
         print("=" * 70)
-        print("🕷️  DOMAIN SCRAPER")
+        print("🕷️ DOMAIN SCRAPER")
         print("=" * 70)
-        
-        # جرب المصادر بالترتيب
+
         raw_domains = []
-        
-        # المصدر 1: NameJet
-        namejet_domains = self.scrape_namejet_pending()
-        raw_domains.extend(namejet_domains)
-        
-        # المصدر 2: ExpiredDomains (إذا NameJet ما كفى)
+
+        # 🟢 جرب API أولاً
+        api_domains = self.scrape_api_domains()
+        raw_domains.extend(api_domains)
+
+        # 🟡 إذا فشل API → جرب NameJet
         if len(raw_domains) < 20:
-            expired_domains = self.scrape_expireddomains_rss()
-            raw_domains.extend(expired_domains)
-        
-        # نظّف وتحقق
+            namejet_domains = self.scrape_namejet_pending()
+            raw_domains.extend(namejet_domains)
+
+        # 🔴 إذا كل شيء فشل → fallback
+        if len(raw_domains) == 0:
+            raw_domains = self._get_fallback_domains()
+
+        # تنظيف
         clean_domains = []
         seen = set()
-        
+
         for domain in raw_domains:
             cleaned = self.clean_domain(domain)
-            
+
             if cleaned not in seen and self.validate_domain(cleaned):
                 clean_domains.append(cleaned)
                 seen.add(cleaned)
-        
-        print(f"\n✅ تم تنظيف الدومينات:")
-        print(f"   الأصلي: {len(raw_domains)}")
+
+        print(f"\n✅ النتائج:")
+        print(f"   الخام: {len(raw_domains)}")
         print(f"   النظيف: {len(clean_domains)}")
-        
-        return clean_domains[:50]  # أول 50 دومين
+
+        return clean_domains[:50]
